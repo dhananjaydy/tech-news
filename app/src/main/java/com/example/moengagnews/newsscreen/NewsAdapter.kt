@@ -50,8 +50,8 @@ class NewsAdapter(
     }
 
     fun convertISOToDDMMYYYY(isoDate: String): String {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-        inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val inputFormat = SimpleDateFormat(DATE_PATTERN, Locale.US)
+        inputFormat.timeZone = TimeZone.getTimeZone(UTC)
         val date = inputFormat.parse(isoDate)
         val calendar = Calendar.getInstance()
         date?.let {
@@ -60,7 +60,23 @@ class NewsAdapter(
         val dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
         val month = calendar.get(Calendar.MONTH) + 1
         val year = calendar.get(Calendar.YEAR)
-        return String.format("%02d-%02d-%04d", dayOfMonth, month, year)
+        return String.format(DATE_FORMAT, dayOfMonth, month, year)
+    }
+
+    companion object {
+        const val DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        const val DATE_FORMAT = "%02d-%02d-%04d"
+        const val UTC = "UTC"
     }
 
 }
+
+/*
+
+    FUTURE TODOs
+        - Implementation of DiffUtil to better manage the recyclerview data
+        - Effect on the items when they are clicked so user knows which item are they interacting with
+        - Currently, image sizes are not fixed if they are present. Having a constant size to provider
+            better uniformity can be one such thing done
+
+ */

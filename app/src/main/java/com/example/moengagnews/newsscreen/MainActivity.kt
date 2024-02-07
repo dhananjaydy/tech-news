@@ -20,9 +20,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // view setup
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // executing screen via mini functions
         setupRecyclerview()
         setupSwitch()
         initObservers()
@@ -31,6 +34,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerview() {
         binding.newsRv.apply {
             newsAdapter = NewsAdapter(emptyList()) { url ->
+
+                // url received in callback, to open it in the chrome tab
                 val builder = CustomTabsIntent.Builder()
                 val customTabsIntent = builder.build()
                 customTabsIntent.launchUrl(context, Uri.parse(url))
@@ -42,8 +47,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupSwitch() {
         binding.dateSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            // toggle state being mainTained inside the ViewModel and data being sorted accordingly
             viewModel.sortArticlesByTimestamp()
             if (isChecked) {
+                // use of scope function and trying to make the leaned side of the switch more darker by setting different colors
                 with(binding) {
                     latestTv.setTextColor(Color.BLACK)
                     earliestTv.setTextColor(Color.GRAY)
@@ -59,11 +66,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initObservers() {
 
+        // whenever data change is there, items can be updated
         viewModel.response.observe(this) { newItems ->
+            // the default loaidng layout is meant to made invisble in event of success of response
             binding.layoutNonSuccess.root.visibility = View.GONE
             newsAdapter.updateItems(newItems)
         }
 
+        // commonn layout to show error to the user in case of any failure
         viewModel.showError.observe(this) { showError ->
             if (showError) {
                 with (binding.layoutNonSuccess) {
@@ -78,3 +88,12 @@ class MainActivity : AppCompatActivity() {
         const val TAG = "MainActivity"
     }
 }
+
+/*
+    Future TODOs
+        - adding mutiple tabs on the main app, having three to four tabs to increase user activity
+        - the current layout is a normal scrolling one, we can replace it with a swipe upwards and sidewards
+            to make it more habitual to the user
+        - adding of gestures such as double tap, swipes in direction to perform actions like save, like functionalites
+        - inclusion of search functionality to provide easier access to the trending news one might be looking for
+ */

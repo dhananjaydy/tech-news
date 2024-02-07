@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import com.example.moengagnews.data.dto.ArticlesResponse
 import com.example.moengagnews.data.dto.Response
@@ -21,10 +20,13 @@ import java.util.Locale
 
 class NewsViewModel : ViewModel() {
 
+    // initiating the API call from the init black itself rather than making a call from the view
+    // to save up time and effectively lesser load time for user
     init {
         fetchData()
     }
 
+    // keeping track of failure state of API through status code and making necessary layout changes accordingly
     private val _showError = MutableLiveData<Boolean>()
     val showError: LiveData<Boolean>
         get() = _showError
@@ -35,7 +37,10 @@ class NewsViewModel : ViewModel() {
 
     private var isAscending = true
 
+    // by default storing the data in order of latest news received, function runs each time toggle button is pressed
     fun sortArticlesByTimestamp() {
+        // doing the work in the background thread so that main thread does not suffer lag and
+        // viewmodelscope for any expected events through which state shall be maintained
         viewModelScope.launch(Dispatchers.IO) {
             val newData = if (isAscending) {
                 _response.value?.sortedBy { response ->
@@ -56,6 +61,7 @@ class NewsViewModel : ViewModel() {
                     }
                 }
             }
+            // posting the data to variable using postValue rather than setValue as we are on background thread
             newData?.let {
                 _response.postValue(it)
             }
@@ -65,12 +71,15 @@ class NewsViewModel : ViewModel() {
 
     fun fetchData() {
         viewModelScope.launch(Dispatchers.IO) {
+
+            // intialising the connection and making reqyest
             val url = URL(ENDPOINT)
             val connection = url.openConnection() as HttpURLConnection
             try {
 
                 val code = connection.responseCode
 
+                // checking if the code is valid for our case or not
                 if (code != 200) {
                     _showError.postValue(true)
                     throw IOException("The error from the server is $code")
@@ -80,18 +89,23 @@ class NewsViewModel : ViewModel() {
                     InputStreamReader(connection.inputStream)
                 )
 
+
                 val jsonStringHolder: StringBuilder = StringBuilder()
 
                 while (true) {
                     val readLine = bufferedReader.readLine() ?: break
                     jsonStringHolder.append(readLine)
                 }
-                Log.d(TAG, "fetchData: $jsonStringHolder")
+                // in above steps, the string has been customised to be taken as JSON and then further actions
+                // can be taken
+
                 val finalResponse: Response = Gson().fromJson(jsonStringHolder.toString(), Response::class.java)
-                Log.d(TAG, "fetchData: list size is ${finalResponse.articles.size}")
                 _response.postValue(finalResponse.articles.toList())
+
+                // JSON converted to data class using GSON
             } finally {
                 connection.disconnect()
+                // closing the initiated connection
             }
         }
     }
@@ -102,3 +116,9 @@ class NewsViewModel : ViewModel() {
         const val TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
     }
 }
+
+/*
+    Future TODOs
+        - Better state management using sealed classes inside ViewModel
+        - filter functionality expansion basis several paramters using when condition
+ */
