@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CNN News</string>
+    <string name="error_message">Currently unavailable, Please try again later.</string>
+    <string name="oldest">Oldest</string>
+    <string name="latest">Latest</string>
+    <string name="sort_by_date">Sort by date:</string>
+    <string name="header_image">header image</string>
+    <string name="articles_are_loading">Articles are loading...</string>
+</resources>
